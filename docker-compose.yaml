@@ -1,0 +1,25 @@
+version: "3.8"
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: "postgresql://postgres:pass@postgres:5432/parsing_logs"
+
+  postgres:
+    image: postgres
+    restart: always
+    ports:
+      - "15432:5432"
+    volumes:
+      - ./tmp/data/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: parsing_logs
