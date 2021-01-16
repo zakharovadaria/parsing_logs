@@ -9,9 +9,10 @@ services:
       - "8000:8000"
     depends_on:
       - postgres
+      - redis
     environment:
       DATABASE_URL: "postgresql://postgres:pass@postgres:5432/parsing_logs"
-
+      CELERY_BROKER_URL: "redis://:pass@redis:6379/0"
   postgres:
     image: postgres
     restart: always
@@ -23,3 +24,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: parsing_logs
+
+  redis:
+    image: "redis:alpine"
+    volumes:
+      - ./data/redis:/data
+    command: redis-server --requirepass pass
