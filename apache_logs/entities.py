@@ -50,3 +50,10 @@ class PaginatedLogWithStatistics:
     logs: List[ApacheLog]
     statistics: LogStatistics
     pagination: Pagination
+
+
+@dataclass
+class ImportStatus:
+    pk: int
+    percent: int
+    status: str
