@@ -1,0 +1,95 @@
+<html>
+    <head>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+        <style>
+            body {
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Apache Logs</h1>
+        <form action="{% url 'index' %}" method="get">
+            <input name="q" type="text" placeholder="Search...">
+        </form>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>IP address</th>
+                    <th>Date</th>
+                    <th>Method</th>
+                    <th>URI</th>
+                    <th>Status code</th>
+                    <th>Size</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                    <tr>
+                        <td>{{ log.ip_address }}</td>
+                        <td>{{ log.date }}</td>
+                        <td>{{ log.method }}</td>
+                        <td>{{ log.uri }}</td>
+                        <td>{{ log.status_code }}</td>
+                        <td>{{ log.size }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if pagination.has_other_pages %}
+            <div class="pagination">
+                {% if pagination.has_previous %}
+                    <span class="page-item"><a class="page-link" href="?page=1">First</a></span>
+                    <span class="page-item"><a class="page-link" href="?page={{ pagination.previous_page_number }}">Previous</a></span>
+                {% endif %}
+                <span class="page-item disabled"><a class="page-link" href="">Page {{ pagination.number }} of {{ pagination.num_pages }}</a></span>
+
+                {% if pagination.has_next %}
+                    <span class="page-item"><a class="page-link" href="?page={{ pagination.next_page_number }}">Next</a></span>
+                    <span class="page-item"><a class="page-link" href="?page={{ pagination.num_pages }}">Last &raquo;</a></span>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <h1>Statistics:</h1>
+        <h2>Количество уникальных IP: {{ statistics.unique_ip_count }}</h2>
+        <h2>Top 10 IP addresses</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>IP address</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for top_ip_address in statistics.top_ip_addresses %}
+                    <tr>
+                        <td>{{ top_ip_address.ip_address }}</td>
+                        <td>{{ top_ip_address.count }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>HTTP methods usage</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>HTTP method</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for http_method_count in statistics.http_methods_count %}
+                    <tr>
+                        <td>{{ http_method_count.method }}</td>
+                        <td>{{ http_method_count.count }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <h2>Общее кол-во переданных байт: {{ statistics.sum_sizes }}</h2>
+    </body>
+</html>

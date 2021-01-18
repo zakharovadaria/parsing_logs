@@ -11,9 +11,11 @@ click-repl==0.1.6
 dj-database-url==0.5.0
 Django==3.1.5
 idna==2.10
+ipaddress==1.0.23
 kombu==5.0.2
 prompt-toolkit==3.0.10
 psycopg2-binary==2.8.6
+python-dotenv==0.15.0
 pytz==2020.5
 redis==3.5.3
 requests==2.25.1

@@ -24,9 +24,21 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: parsing_logs
-
   redis:
     image: "redis:alpine"
     volumes:
       - ./data/redis:/data
+    ports:
+      - "6379:6379"
     command: redis-server --requirepass pass
+  celery:
+    build: .
+    command: celery -A parsing_logs worker -l info
+    volumes:
+      - .:/code
+    environment:
+      DATABASE_URL: "postgresql://postgres:pass@postgres:5432/parsing_logs"
+      CELERY_BROKER_URL: "redis://:pass@redis:6379/0"
+    depends_on:
+      - postgres
+      - redis
