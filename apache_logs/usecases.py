@@ -3,6 +3,7 @@ from datetime import datetime
 from math import ceil
 from typing import List
 
+from apache_logs.constants import HTTP_METHODS
 from apache_logs.entities import ApacheLog, LogStatistics, PaginatedLogWithStatistics, ImportStatus
 from apache_logs.interfaces import IApacheLogsDAO, IRequestDAO, IImportStatusDAO
 
@@ -21,9 +22,15 @@ class ParseLogsUseCase:
             if not line:
                 continue
             ip_address, _, _, date, gmt, method, uri, _, status_code, size, *options = line.split()
+
+            try:
+                ip_address = str(ipaddress.ip_address(ip_address))
+            except ValueError:
+                print(f"{ip_address} is not a valid ip address")
+                continue
+
             date = date[1:]
             gmt = gmt[:-1]
-            method = method[1:]
 
             try:
                 date = datetime.strptime(date + gmt, '%d/%b/%Y:%H:%M:%S%z')
@@ -31,18 +38,26 @@ class ParseLogsUseCase:
                 print(f"{date} date is not a valid date.")
                 continue
 
-            status_code = int(status_code)
+            method = method[1:]
+
+            if method not in HTTP_METHODS:
+                print(f"{method} method is not valid.")
+                continue
+
+            try:
+                status_code = int(status_code)
+            except ValueError:
+                print(f"{status_code} should be valid integer")
+                continue
+
+            if not 100 <= status_code <= 599:
+                print(f"{status_code} should be between 100 and 599")
+                continue
 
             try:
                 size = int(size)
             except ValueError:
                 size = 0
-
-            try:
-                ip_address = str(ipaddress.ip_address(ip_address))
-            except ValueError:
-                print(f"{ip_address} is not a valid ip address")
-                continue
 
             apache_log = ApacheLog(
                 ip_address=ip_address,
@@ -92,6 +107,7 @@ class ParseLogsUseCase:
         else:
             rows = self.request_dao.get_full_rows(url=url)
             self._import_logs(rows=rows)
+            self.import_status_dao.finish_import_status(import_status_id=import_status.pk)
 
 
 class GetLogsUseCase:

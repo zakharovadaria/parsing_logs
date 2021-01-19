@@ -2,7 +2,7 @@ version: "3.8"
 services:
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: gunicorn parsing_logs.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - .:/code
     ports:
@@ -10,9 +10,8 @@ services:
     depends_on:
       - postgres
       - redis
-    environment:
-      DATABASE_URL: "postgresql://postgres:pass@postgres:5432/parsing_logs"
-      CELERY_BROKER_URL: "redis://:pass@redis:6379/0"
+    env_file:
+      - .env
   postgres:
     image: postgres
     restart: always
@@ -20,10 +19,19 @@ services:
       - "15432:5432"
     volumes:
       - ./tmp/data/postgres:/var/lib/postgresql/data
+    env_file:
+      - .env
+  test_postgres:
+    image: postgres
+    restart: always
+    ports:
+      - "15433:5432"
+    volumes:
+      - ./tmp/data/postgres:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: parsing_logs
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=test_parsing_logs
   redis:
     image: "redis:alpine"
     volumes:
@@ -36,9 +44,8 @@ services:
     command: celery -A parsing_logs worker -l info
     volumes:
       - .:/code
-    environment:
-      DATABASE_URL: "postgresql://postgres:pass@postgres:5432/parsing_logs"
-      CELERY_BROKER_URL: "redis://:pass@redis:6379/0"
+    env_file:
+      - .env
     depends_on:
       - postgres
       - redis
